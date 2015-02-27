@@ -1,53 +1,77 @@
-// Create a Paper.js Path to draw a line into it:
-var mirror = new Path();
-// Give the stroke a color
-mirror.strokeColor = 'black';
-var start = new Point(100, 100);
-// Move to start and draw a line from there
-mirror.moveTo(start);
-mirror.lineTo(start + [ 300, 50 ]);
+// Create a sound reflecting line
 
-var sound = new Path(
-  new Point(view.center - [0, 200]),
-  new Point(view.center + [0, 200])
-);
+strokeWidth = 2;
+var mirror = new Path();
+mirror.add(new Point(100, 100));
+mirror.add(new Point(200, 200));
+mirror.strokeColor = 'black';
+mirror.strokeWidth = strokeWidth;
+mirror.smooth();
+
+var soundLength = 400;
+var start =  new Point(view.center - [0, 200]);
+var end = start + [100, soundLength];
+
+var sound = new Path(start, end);
 sound.strokeColor = 'red';
+sound.strokeWidth = strokeWidth;
+
+var sound2 = new Path();
+sound2.strokeColor = 'red';
+sound2.strokeWidth = strokeWidth;
+
+window.bounce = new Path(
+  new Point(),
+  new Point()
+);
+bounce.strokeColor = 'blue';
 
 function onResize(event) {
   // Whenever the window is resized, recenter the path:
   //mirror.position = view.center;
 }
 
-var intersectionDot = new Path.Circle({
-  radius:3,
-  fillColor: 'blue',
-  visible: false
-});
 
 function onMouseDrag(event) {
   mirror.removeSegment(0);
   mirror.removeSegment(0);
   mirror.add(event.downPoint);
   mirror.add(event.point);
+  mirror.smooth();
 
-  intersectionDot.visible = false;
+  sound.removeSegment(1);
+  sound.removeSegment(1);
+  sound.add(end);
+
+  sound2.removeSegment(0);
+  sound2.removeSegment(0);
+
   var intersection = mirror.getIntersections(sound)[0];
   if (!intersection) return;
 
   // intersection is a CurveLocation object
   //paperjs.org/reference/curvelocation/
 
-  intersectionDot.visible = true;
-  intersectionDot.position = intersection.point;
-
-  // Paths and Curves have the getTangentAt function
+  // Paths and Curves have the .getTangentAt function
+  // the absolute angle of the mirror where the sound arrives
   var mirrorTangentPoint = mirror.getTangentAt(intersection.offset);
   var mirrorAngle = mirrorTangentPoint.angle;
 
-  // the intersection at
+  // the absolute angle of the sound when it arrives
   var soundTangentPoint = sound.getTangentAt(intersection.intersection.offset);
   var soundAngle = soundTangentPoint.angle;
 
-  console.log(mirrorAngle, soundAngle);
+  var relativeAngle = soundAngle - mirrorAngle;
+  sound.segments[1].point = new Point(intersection.point);
+
+  sound1Length = sound.segments[0].point - sound.segments[1].point;
+  sound1Length = sound1Length.length;
+  sound2Length = soundLength - sound1Length;
+
+  // draw the bounce
+  var reflectVector = new Point({length: sound2Length, angle: mirrorAngle - relativeAngle});
+  sound2.add(intersection.point);
+  sound2.add(new Point(intersection.point + reflectVector));
+
 
 }
