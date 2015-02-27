@@ -1,17 +1,52 @@
-// Create a sound reflecting line
+var createMirror = function(){
+  var circles = [];
 
-strokeWidth = 2;
-var mirror = new Path();
-mirror.add(new Point(100, 100));
-mirror.add(new Point(200, 200));
-mirror.strokeColor = 'black';
-mirror.strokeWidth = strokeWidth;
-mirror.smooth();
+  var makeCircle = function(x, y){
+    var refPoint = new Path.Circle({
+      x:x, y:y,
+      fillColor: 'black',
+      radius:4,
+      strokeColor:'blue'
+    });
+    circles.push(refPoint);
+
+    refPoint.onMouseDrag = function(event){
+      refPoint.position = event.point;
+      handleMove()
+    };
+    return refPoint
+  }
+
+  makeCircle(10, 10);
+  makeCircle(10, 110);
+  makeCircle(110, 110);
+
+  var mirror = new Path(
+    circles[0].position,
+    circles[2].position
+  );
+
+  mirror.strokeColor = 'black';
+  mirror.strokeWidth = 2;
+  mirror.firstSegment.handleOut = circles[1].position
+
+  // move the mirror to match the position of the circles
+  var handleMove = function(){
+    mirror.segments[0].point = circles[0].position;
+    mirror.segments[0].handleOut = circles[1].position;
+    mirror.segments[1].point = circles[2].position;
+  }
+
+  return mirror;
+};
+
+var mirror = createMirror()
 
 var soundLength = 400;
 var start =  new Point(view.center - [0, 200]);
 var end = start + [100, soundLength];
 
+strokeWidth = 1;
 var sound = new Path(start, end);
 sound.strokeColor = 'red';
 sound.strokeWidth = strokeWidth;
@@ -32,7 +67,7 @@ function onResize(event) {
 }
 
 
-function onMouseDrag(event) {
+function oonMouseDrag(event) {
   mirror.removeSegment(0);
   mirror.removeSegment(0);
   mirror.add(event.downPoint);
