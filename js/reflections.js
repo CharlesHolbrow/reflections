@@ -18,12 +18,11 @@ var createMirror = function(){
   }
 
   makeCircle(10, 10);
-  makeCircle(10, 110);
   makeCircle(110, 110);
 
   var mirror = new Path(
     circles[0].position,
-    circles[2].position
+    circles[1].position
   );
 
   mirror.strokeColor = 'black';
@@ -33,8 +32,8 @@ var createMirror = function(){
   // move the mirror to match the position of the circles
   var handleMove = function(){
     mirror.segments[0].point = circles[0].position;
-    mirror.segments[0].handleOut = circles[1].position;
-    mirror.segments[1].point = circles[2].position;
+    mirror.segments[0].handleOut = new Point({angle: 25, length:3})
+    mirror.segments[1].point = circles[1].position;
   }
 
   return mirror;
@@ -67,13 +66,7 @@ function onResize(event) {
 }
 
 
-function oonMouseDrag(event) {
-  mirror.removeSegment(0);
-  mirror.removeSegment(0);
-  mirror.add(event.downPoint);
-  mirror.add(event.point);
-  mirror.smooth();
-
+function onMouseDrag(event) {
   sound.removeSegment(1);
   sound.removeSegment(1);
   sound.add(end);
