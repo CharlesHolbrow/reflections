@@ -1,52 +1,75 @@
-var createMirror = function(){
-  var pathCircles = [];
-  var outHandles = [];
+// Setting an item's position does not set it's position
+// relative to the group.
+//
+// group.position is always average of the groups elements
+//
+// path handles care about angles - positions xy position are
+// always angle relative to the origin. If you use a point for a
+// handle, you have to subtract it from the patch segment.
 
-  // props must contain (x and y) OR (radius and length)
-  var makeCircle = function(props){
-    props.fillColor = 'black';
-    props.radius = 4;
-    props.strokeColor = 'blue';
-    var circle = new Path.Circle(props);
-    circle.onMouseDrag = function(event){
-      circle.position = event.point;
-      handleMove()
-    };
-    return circle
-  };
+var createMirror = function(){
+  var groups = [];
+  var segmentCircles = [];
+  var outHandleCircles = [];
 
   var addSegment = function(x, y){
-    var circle = makeCircle({x:x, y:y});
-    pathCircles.push(circle);
+    var circle = new Path.Circle([0, 0], 6);
+    circle.fillColor = 'black';
+    circle.strokeColor = 'blue';
+    segmentCircles.push(circle);
+
+    var group = new Group;
+    groups.push(group);
+    group.addChild(circle);
+    group.position = new Point(x, y);
+    group.fillColor = 'black';
+    circle.strokeColor = 'red';
+
+
+    circle.onMouseDrag = function(event){
+      group.translate({x:event.delta.x, y:event.delta.y});
+      handleMove()
+    };
     return circle;
   };
-  var addOutHandle = function(radius, length){
-    var index = pathCircles.length -1;
-    var pathCircle = pathCircles[index];
-    var position = pathCircle.position;
-    var circle = new Point({radius:radius, length:length}) + position;
-    mirror[index].handleOut = circle.position;
+
+  var addOutHandle = function(angle, length){
+    var index = outHandleCircles.length;
+    var circle = new Path.Circle(new Point, 6);
+    outHandleCircles.push(circle);
+    circle.fillColor = 'black';
+    circle.strokeColor = 'blue';
+
+    var group = groups[index];
+    group.addChild(circle);
+
+    circle.onMouseDrag = function(event){
+      circle.translate(event.delta);
+      handleMove();
+    };
+
+    circle.position = segmentCircles[index].position + new Point({angle:angle, length:length});
     return circle;
   };
 
   addSegment(10, 10);
+  addOutHandle(90, 100);
   addSegment(110, 110);
 
-  var mirror = new Path(
-    pathCircles[0].position,
-    pathCircles[1].position
-  );
+  var mirror = new Path([
+    [segmentCircles[0].position, null, outHandleCircles[0].position - segmentCircles[0].position],
+    [segmentCircles[1].position, null, null]
+  ]);
 
   mirror.fullySelected = true;
   mirror.strokeColor = 'black';
   mirror.strokeWidth = 2;
-  mirror.firstSegment.handleOut = pathCircles[0].position + new Point({length: 3, angle:-45});
 
-  // move the mirror to match the position of the pathCircles
+  // move the mirror to match the position of the segmentCircles
   var handleMove = function(){
-    mirror.segments[0].point = pathCircles[0].position;
-    // mirror.segments[0].handleOut = new Point({angle: 25, length:3})
-    mirror.segments[1].point = pathCircles[1].position;
+    mirror.segments[0].point = segmentCircles[0].position;
+    mirror.segments[0].handleOut = outHandleCircles[0].position - segmentCircles[0].position;
+    mirror.segments[1].point = segmentCircles[1].position;
   }
 
   return mirror;
@@ -54,8 +77,8 @@ var createMirror = function(){
 
 var mirror = createMirror()
 
-var soundLength = 400;
-var start =  new Point(view.center - [0, 200]);
+var soundLength = 500;
+var start =  new Point(view.center.x, 50);
 var end = start + [100, soundLength];
 
 strokeWidth = 1;
@@ -113,6 +136,4 @@ function onMouseDrag(event) {
   var reflectVector = new Point({length: sound2Length, angle: mirrorAngle - relativeAngle});
   sound2.add(intersection.point);
   sound2.add(new Point(intersection.point + reflectVector));
-
-
 }
