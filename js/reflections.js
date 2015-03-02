@@ -1,39 +1,52 @@
 var createMirror = function(){
-  var circles = [];
+  var pathCircles = [];
+  var outHandles = [];
 
-  var makeCircle = function(x, y){
-    var refPoint = new Path.Circle({
-      x:x, y:y,
-      fillColor: 'black',
-      radius:4,
-      strokeColor:'blue'
-    });
-    circles.push(refPoint);
-
-    refPoint.onMouseDrag = function(event){
-      refPoint.position = event.point;
+  // props must contain (x and y) OR (radius and length)
+  var makeCircle = function(props){
+    props.fillColor = 'black';
+    props.radius = 4;
+    props.strokeColor = 'blue';
+    var circle = new Path.Circle(props);
+    circle.onMouseDrag = function(event){
+      circle.position = event.point;
       handleMove()
     };
-    return refPoint
-  }
+    return circle
+  };
 
-  makeCircle(10, 10);
-  makeCircle(110, 110);
+  var addSegment = function(x, y){
+    var circle = makeCircle({x:x, y:y});
+    pathCircles.push(circle);
+    return circle;
+  };
+  var addOutHandle = function(radius, length){
+    var index = pathCircles.length -1;
+    var pathCircle = pathCircles[index];
+    var position = pathCircle.position;
+    var circle = new Point({radius:radius, length:length}) + position;
+    mirror[index].handleOut = circle.position;
+    return circle;
+  };
+
+  addSegment(10, 10);
+  addSegment(110, 110);
 
   var mirror = new Path(
-    circles[0].position,
-    circles[1].position
+    pathCircles[0].position,
+    pathCircles[1].position
   );
 
+  mirror.fullySelected = true;
   mirror.strokeColor = 'black';
   mirror.strokeWidth = 2;
-  mirror.firstSegment.handleOut = circles[1].position
+  mirror.firstSegment.handleOut = pathCircles[0].position + new Point({length: 3, angle:-45});
 
-  // move the mirror to match the position of the circles
+  // move the mirror to match the position of the pathCircles
   var handleMove = function(){
-    mirror.segments[0].point = circles[0].position;
-    mirror.segments[0].handleOut = new Point({angle: 25, length:3})
-    mirror.segments[1].point = circles[1].position;
+    mirror.segments[0].point = pathCircles[0].position;
+    // mirror.segments[0].handleOut = new Point({angle: 25, length:3})
+    mirror.segments[1].point = pathCircles[1].position;
   }
 
   return mirror;
