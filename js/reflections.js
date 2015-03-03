@@ -11,6 +11,11 @@
 // segments have .point
 // segments have .point.angle
 //
+var drawHandle = function(x, y){
+  var circle = new Path.Circle([x, y], 6);
+  circle.fillColor = 'black';
+  return circle;
+};
 
 var createMirror = function(){
   var groups = [];
@@ -18,9 +23,7 @@ var createMirror = function(){
   var outHandleCircles = [];
 
   var addSegment = function(x, y){
-    var circle = new Path.Circle([0, 0], 6);
-    circle.fillColor = 'black';
-    circle.strokeColor = 'blue';
+    var circle = drawHandle(x, y);
     segmentCircles.push(circle);
 
     var group = new Group;
@@ -43,10 +46,8 @@ var createMirror = function(){
 
   var addOutHandle = function(angle, length){
     var index = outHandleCircles.length;
-    var circle = new Path.Circle(new Point, 6);
+    var circle = drawHandle(0, 0);
     outHandleCircles.push(circle);
-    circle.fillColor = 'black';
-    circle.strokeColor = 'blue';
 
     var group = groups[index];
     group.addChild(circle);
@@ -87,18 +88,42 @@ var mirror = createMirror();
 
 var createSoundSource = function(x,y, angle, length){
   var start =  new Point(x, y);
-  var end = new Point({angle:angle, length:length}) + start;
+  // Group contains
+  // - circle handle for moving the position
+  // - path objects with .drawReflections method
+  var group = new Group;
 
-  strokeWidth = 1;
-  var sound = new Path(start, end);
-  sound.strokeColor = 'red';
-  sound.strokeWidth = strokeWidth;
+
+  circle = drawHandle(x, y);
+  group.addChild(circle);
+  circle.onMouseDrag = function(event){
+    group.translate({x:event.delta.x, y:event.delta.y});
+  };
 
   soundSource = {
-    end: end,
-    start: start,
-    path: sound,
+    group: group,
     update: function(){
+      for (var i = 0; i < group.children.length; i++){
+        var path = group.children[i];
+        if (typeof path.drawReflections !== 'function') continue;
+        path.drawReflections();
+      }
+    }
+  };
+
+  var createSoundPath = function(angle, length){
+    var vector = new Point({angle:angle, length:length});
+    var end = vector + start;
+
+    strokeWidth = 1;
+    var sound = new Path(start, end);
+    group.addChild(sound);
+    sound.strokeColor = 'red';
+    sound.strokeWidth = strokeWidth;
+
+    sound.drawReflections = function(){
+      var start = new Point(circle.position);
+      var end = start + vector;
       sound.segments = [sound.firstSegment];
       sound.add(end);
 
@@ -127,14 +152,18 @@ var createSoundSource = function(x,y, angle, length){
       // draw the bounce
       var reflectVector = new Point({length: sound2Length, angle: mirrorAngle - relativeAngle});
       sound.add(new Point(intersection.point + reflectVector));
-    }
-  }; // soundSource object
+    }; // drawReflections function
+    return sound;
+  }; // createSoundLine function
 
+  for (var i = 0; i < 5; i++){
+    createSoundPath(angle + i * 5, length);
+  }
   return soundSource;
 };
 
 
-window.soundSource = createSoundSource(300, 20, 90, 500);
+window.soundSource = createSoundSource(300, 20, 0, 800);
 
 function onMouseDrag(event) {
   soundSource.update();
