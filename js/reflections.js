@@ -6,6 +6,11 @@
 // path handles care about angles - positions xy position are
 // always angle relative to the origin. If you use a point for a
 // handle, you have to subtract it from the patch segment.
+//
+// paths have .position.x
+// segments have .point
+// segments have .point.angle
+//
 
 var createMirror = function(){
   var groups = [];
@@ -57,7 +62,7 @@ var createMirror = function(){
 
   addSegment(10, 10);
   addOutHandle(90, 100);
-  addSegment(110, 110);
+  addSegment(410, 410);
 
   var mirror = new Path([
     [segmentCircles[0].position, null, outHandleCircles[0].position - segmentCircles[0].position],
@@ -78,29 +83,24 @@ var createMirror = function(){
   return mirror;
 };
 
-var mirror = createMirror()
-var createSoundSource = function(x,y){
-  var soundLength = 500;
-  var start =  new Point(view.center.x, 50);
-  var end = start + [100, soundLength];
+var mirror = createMirror();
+
+var createSoundSource = function(x,y, angle, length){
+  var start =  new Point(x, y);
+  var end = new Point({angle:angle, length:length}) + start;
 
   strokeWidth = 1;
   var sound = new Path(start, end);
   sound.strokeColor = 'red';
   sound.strokeWidth = strokeWidth;
 
-  var sound2 = new Path();
-  sound2.strokeColor = 'red';
-  sound2.strokeWidth = strokeWidth;
-
   soundSource = {
+    end: end,
+    start: start,
+    path: sound,
     update: function(){
-      sound.removeSegment(1);
-      sound.removeSegment(1);
+      sound.segments = [sound.firstSegment];
       sound.add(end);
-
-      sound2.removeSegment(0);
-      sound2.removeSegment(0);
 
       var intersection = mirror.getIntersections(sound)[0];
       if (!intersection) return;
@@ -122,20 +122,19 @@ var createSoundSource = function(x,y){
 
       sound1Length = sound.segments[0].point - sound.segments[1].point;
       sound1Length = sound1Length.length;
-      sound2Length = soundLength - sound1Length;
+      sound2Length = length - sound1Length;
 
       // draw the bounce
       var reflectVector = new Point({length: sound2Length, angle: mirrorAngle - relativeAngle});
-      sound2.add(intersection.point);
-      sound2.add(new Point(intersection.point + reflectVector));
+      sound.add(new Point(intersection.point + reflectVector));
     }
-
   }; // soundSource object
+
   return soundSource;
 };
 
 
-soundSource = createSoundSource();
+window.soundSource = createSoundSource(300, 20, 90, 500);
 
 function onMouseDrag(event) {
   soundSource.update();
