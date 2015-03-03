@@ -1,0 +1,275 @@
+<html>
+<!-- 
+
+bigonzo - The Hexagonal pulpit on the south side. example shown in figure 4 here:
+https://www.brown.edu/Departments/Joukowsky_Institute/undergrad/prizes/Smyth2013.pdf
+
+History of where the choir was positioned
+https://venicemusic.wordpress.com/
+
+This ASA paper claims that there is disagreement about where the choirs stood:
+http://acoustics.org/pressroom/httpdocs/162nd/boren_1aAA6.html
+
+-->
+<head>
+	<title>Reflection</title>
+
+	<link href='http://fonts.googleapis.com/css?family=Fjord+One' rel='stylesheet' type='text/css'>
+	<link href='http://fonts.googleapis.com/css?family=Jura' rel='stylesheet' type='text/css'>
+	<link href='http://fonts.googleapis.com/css?family=Carrois+Gothic' rel='stylesheet' type='text/css'>
+
+	<script src="js/jquery.1.7.1.min.js"></script>
+	<script src="js/jmpress.all.js"></script>
+
+	<link href="css/animation.css" rel="stylesheet" type="text/css" />
+	<link href="css/basic-animations.css" rel="stylesheet" type="text/css" />
+	<link href="css/charles.css" rel="stylesheet" type="text/css" />
+
+</head>
+<body>
+<div id="impress">
+	<div id="home" class="step" data-x="-2000" data-y="-800">
+		<h1>Reflection</h1>
+		<h2>Tools for Dynamic Surround Sound Design</h2>
+		<h3>Charles Holbrow</h3>
+		<h3>Opera of the Future</h3>
+		<div class='table'>
+			<div class='reader'>
+<b>Advisor</b></br>
+Tod Machover </br>
+Professor of  Music and Media </br>
+MIT Media Lab </br>
+			</div>
+		</div>
+		<div class="table">
+			<div class='reader'>
+<b>Reader</b></br>
+Joseph A. Paradiso </br>
+Associate Professor of Media Arts and Sciences, 
+MIT Media Lab </br>
+			</div>
+			<div class='reader'>
+<b>Reader</b></br>
+James A. Moorer </br>
+Principal Scientist </br>
+Adobe Systems, Incorporated </br>
+			</div>
+		</div>
+	</div>
+
+	<div id="" class="step" data-x="-1000" data-y="-800" data-z="00">
+		<img src="img/BasilicaSanMarco_FromChiorLoft.jpg" class="bg">
+	</div>
+
+	<div id="" class="step" data-x="-1000" data-y="00" data-z="00">
+		<img src="img/powers.jpg" class="bg">
+	</div>
+
+	<div id="" class="step" data-x="-1000" data-y="800" data-z="00">
+		<img src="img/skellig.jpg" class="bg">
+	</div>
+
+
+	<div id="contribution" class="step" data-x="0" data-y="-800">
+		<h1>Contribution</h1>
+		<h2>Audio Processing Software</h2>
+		<ul>
+			<li>Dynamic Control of <span class="red">Surround Spatialization</span></li>
+			<li>Dynamic Control of <span class="red">Surround Sound Dynamics</span></li>
+			<li><span class="red">Seamless Integration</span> with Digital Audio Workstations</li>
+		</ul>
+	</div>
+
+	<div class="step" data-x="1000" data-y="-800">
+		<img class="bg" src="img/violin.jpg">
+	</div>
+
+	<div id="compromise" class="step" data-x="1000" data-y="00">
+		<h1>Amplification gives us...</h1>
+		<ul>
+			<li>Loudness!</li>
+			<li>Precise Control in the Studio</li>
+		</ul>
+		<h1>...but we lose...</h1>
+		<ul>
+			<li>Acoustic Sound Projection</li>
+			<li>Acoustic Dynamics</li>
+		</ul>
+	</div>
+
+	<div id="studio" class="step" data-x="1000" data-y="800">
+		<img class="hide bg" src="img/api-vision-2.jpg">
+	</div>
+
+	<div id="fx-list" class="step fx" data-x="1000" data-y="800">
+		<span class="hide fx-rev">Reverb</span>
+		<span class="hide fx-eq">EQ</span>
+		<span class="hide fx-exp">Expansion</span>
+		<span class="hide fx-auto">Automation</span>
+		<span class="hide fx-gate">Gating</span>
+		<span class="hide fx-del">Delay</span>
+		<span class="hide fx-pitch">Pitch Shift</span>
+		<span class="hide fx-acoust">Acoustics</span>
+		<img class="hide fx-list-right" src="img/placement.png">
+	</div>
+
+	<div id="fx-comp" class="step fx" data-x="800" data-y="850" data-z="-1000">
+		<h1 id='comp-title' class="fx-comp hide">Compression</h1>
+		<img src="img/comp-graph.png" data-jmpress="fade after 1s step" class="hide">
+		<div id="item3" data-jmpress="fade" class="hide">
+			<h3><b>Uses for Compression</b></h3>
+			<ul>
+				<li>Increase Perceived Loudness</li>
+				<li>Improve Intelligibility</li>
+				<li>Improve Articulation</li>
+				<li>Smooth A Performance</li>
+				<li>Shape Transients</li>
+				<li>Extract Ambience</li>
+				<li>De-ess Vocals</li>
+				<li>Balance Multiple Signals</li>
+				<li>Add Distortion</li>
+		</div>
+	</div>
+
+	<div id="fx-sc-comp" class="step" data-x="800" data-y="1650" data-z="-1000">
+		<h1 class='hide fx-comp'>Sidechain Compression</h1>
+		<img src="img/comp-graph.png" class="hide">
+<!-- 		<div data-jmpress="fade">
+			<h3 class='hide'><b>Uses for Sidechain Compression</b></h3>
+			<ul class="hide">
+				<li style="visibility:hidden">Increase Perceived Loudness</li>
+				<li>Improve Intelligibility</li>
+				<li style="visibility:hidden">Improve Articulation</li>
+				<li style="visibility:hidden">Smooth A Performance</li>
+				<li>Shape Transients</li>
+				<li style="visibility:hidden">Extract Ambience</li>
+				<li>De-ess Vocals</li>
+				<li>Balance Multiple Signals</li>
+				<li style="visibility:hidden">Add Distortion</li>
+			</ul>
+		</div>
+ -->	</div>
+
+
+	<!-- Demon Strate audio functionality -->
+	<div id="fx-comp-example" class="step slide" data-x="300" data-y="2450" data-z="-1000">
+		<div class="container">
+			<h1 class="title">Link Angle</h1>
+			<div class="demo">
+				<div id="waveform" class="click-to-play">
+					<div class="progress progress-striped active" id="progress-bar">
+						<div class="progress-bar progress-bar-info"></div>
+					</div>
+					<!-- Here be the waveform -->
+				</div>
+	<!--                 
+				<div class="controls">
+					<button id="play-button" class="btn btn-primary" data-action="play">
+					</button> 
+				</div>
+	-->
+			</div>
+		</div>
+
+		<div id="polar1" data-jmpress="fade">
+			<div class='ch-slider attenuation'>
+				Attenuation
+				<input id="attenuation" class="ch-slider" type="range" min="-1" max="0" step="0.05" value="-0.5"/>
+			</div>
+			<div class='ch-slider'>
+				Link Angle
+				<input id="width" class="ch-slider" type="range" min="0.01" max="10" step="0.05" value="0.02"/>
+			</div>
+		</div>
+
+	</div>
+
+	<div id="fx-spread-example" class="step slide" data-x="1300" data-y="2450" data-z="-1000">
+		<div class="container">
+			<h1 class="title">Spread</h1>
+			<div class="demo" id="second-parent">
+					
+			</div>
+		</div>
+		<div id="polar2">
+
+			<div class='ch-slider attenuation'>
+				Attenuation
+				<input id="spread-attenuation" class="ch-slider" type="range" min="0" max="1" step="0.05" value="0.5"/>
+			</div>
+			<div class='ch-slider'>
+				Spread
+				<input id="spread" class="ch-slider" type="range" min="0.001" max="5" step="0.05" value="0.02"/>
+			</div>
+		</div>
+	</div>
+
+	<div id="organ" class="step" data-x="2000" data-y="-800" data-z="000">
+		<p>
+			Pierre B&eacute;ique Organ at the Montr&eacute;al Symphony
+		</p>
+		<p data-jmpress="fade after 2s step">6,489 Pipes!</p>
+	</div>
+
+	<div id="organ-image" class="step" data-x="2000" data-y="-800" data-z="0">
+		<img src="img/organ-2.jpg" class='bg'>
+	</div>
+
+
+	<div id="evaluation" class="step slide" data-x="2000" data-y="200" data-z="0">
+		<h1>Evaluation</h1>
+		<ul>
+			<li>Use in <span class="red">Live Performance</span></li>	
+		</ul>
+		<div data-jmpress="fade">
+			<h2>Listener A/B Testing</h2>
+			<p>Prepare two contrasting surround audio examples:</p>
+			<ul> 
+				<li>One with <span class="red">Hypercompression</span></li>
+				<li>One with <span class="red">conventional dynamics and panning</span></li>
+			</ul>
+		</div>
+		<div data-jmpress="fade">
+			<p>Prompt listeners to</p>
+			<ol>
+				<li>Identify and rate the clarity of known sounds</li>
+				<li>List adjectives describing the timbre</li>
+			</ol>
+		</div>
+	</div>
+
+	<div id="" class="step" data-x="3000" data-y="-800" data-z="00">
+		<img src="img/vv-juliens.jpg" class="bg">
+	</div>
+
+
+<!-- 	<div id="" class="step slide" data-x="800" data-y="1650" data-z="-1000">
+		<p>There's something important about a music experience together</p>
+	</div> -->
+
+
+	<!-- 	<div id="tiny" data-z="-1800" class="step">
+		<p>small</p>
+	</div> -->
+
+</div>
+
+<script type="text/javascript">
+$(function() {
+
+	// jmpress options
+	// https://github.com/jmpressjs/jmpress.js/blob/master/src/components/core.js#L86
+	$('#impress').jmpress({
+		animation: {
+			transitionDuration: '750ms'
+			,transitionDelay: '500ms'
+			,transitionTimingFunction: 'ease-in-out'
+		}
+	});
+
+	$('.active').trigger('enterStep');
+});
+
+</script>
+</body>
+</html>
