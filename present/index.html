@@ -25,8 +25,8 @@ http://acoustics.org/pressroom/httpdocs/162nd/boren_1aAA6.html
 	<script src="js/jquery.1.7.1.min.js"></script>
 	<script src="js/jmpress.all.js"></script>
 
-<!-- 	<link href="css/animation.css" rel="stylesheet" type="text/css" />
-	<link href="css/basic-animations.css" rel="stylesheet" type="text/css" /> -->
+	<link href="css/animation.css" rel="stylesheet" type="text/css" />
+	<link href="css/basic-animations.css" rel="stylesheet" type="text/css" />
 	<link href="css/charles.css" rel="stylesheet" type="text/css" />
 
 </head>
@@ -50,9 +50,17 @@ http://acoustics.org/pressroom/httpdocs/162nd/boren_1aAA6.html
 		<img src="img/loudspeaker-ring-audio.svg" class="bg">
 	</div>
 
-	<div id="loudspeakers-large-ring" class="step" data-x="000" data-y="00" data-z="1500" data-next="loudspeakrs-angle">
+	<div id="loudspeakers-large-ring" class="step" data-x="000" data-y="00" data-z="1500">
 		<img src="img/people-small.svg" class="">
 		<img src="img/loudspeaker-ring-audio.svg" class="bg">
+	</div>
+
+	<div id="metastasis" class="step" data-x="000" data-y="00" data-z="1500">
+		<img src="img/XenakisMetastasis.jpg" class="bg">
+	</div>
+
+	<div id="phillips" class="step" data-x="000" data-y="00" data-z="1500">
+		<img src="img/PhillipsDrawings.jpg" class="bg">
 	</div>
 
 	<div id="loudspeakers-large" class="step always-visible" data-x="000" data-y="00" data-z="1500">
@@ -61,13 +69,8 @@ http://acoustics.org/pressroom/httpdocs/162nd/boren_1aAA6.html
 	</div>
 
 	<div id="loudspeakers-angle" class="step" data-x="000" data-y="00" data-z="1600" data-rotate-x="-75" z-index:'100'>
-		<canvas id="paperCanvas" width="720" height="520" style="position: relative; top:0px; left:0px; border:0px solid black;" z-index="100"></canvas>
+		<canvas id="paperCanvas" class="will-fade" data-jmpress="fade after 1s step" width="720" height="520" style="position: relative; top:0px; left:0px; border:0px solid black;" z-index="100"></canvas>
 	</div>
-
-	<div id="juliens" class="step" data-x="3000" data-y="-800" data-z="00">
-		<img src="img/vv-juliens.jpg" class="bg">
-	</div>
-
 
 </div>
 

@@ -156,8 +156,8 @@ var createSoundSource = function(x,y, angle, length){
     return sound;
   }; // createSoundLine function
 
-  for (var i = 0; i < 5; i++){
-    createSoundPath(angle + i * 5, length);
+  for (var i = 0; i < 7; i++){
+    createSoundPath(angle + i * 4, length);
   }
   return soundSource;
 };
