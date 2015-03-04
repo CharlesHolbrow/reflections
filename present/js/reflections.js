@@ -61,9 +61,9 @@ var createMirror = function(){
     return circle;
   };
 
-  addSegment(600, 110);
-  addOutHandle(15, 50);
-  addSegment(650, 250);
+  addSegment(10, 10);
+  addOutHandle(90, 100);
+  addSegment(410, 410);
 
   var mirror = new Path([
     [segmentCircles[0].position, null, outHandleCircles[0].position - segmentCircles[0].position],
@@ -163,8 +163,7 @@ var createSoundSource = function(x,y, angle, length){
 };
 
 
-window.soundSource = createSoundSource(570, 170, 0, 600);
-soundSource.update();
+window.soundSource = createSoundSource(300, 20, 0, 800);
 
 function onMouseDrag(event) {
   soundSource.update();

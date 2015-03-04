@@ -18,6 +18,10 @@ http://acoustics.org/pressroom/httpdocs/162nd/boren_1aAA6.html
 	<link href='http://fonts.googleapis.com/css?family=Jura' rel='stylesheet' type='text/css'>
 	<link href='http://fonts.googleapis.com/css?family=Carrois+Gothic' rel='stylesheet' type='text/css'>
 
+	<script type="text/javascript" src="../js/paper/dist/paper-full.js"></script>
+	<script type="text/javascript" src="../js/underscore.js"></script>
+	<script type="text/paperscript" src="../js/reflections.js" canvas="paperCanvas"></script>
+
 	<script src="js/jquery.1.7.1.min.js"></script>
 	<script src="js/jmpress.all.js"></script>
 
@@ -43,7 +47,12 @@ http://acoustics.org/pressroom/httpdocs/162nd/boren_1aAA6.html
 
 	<div id="loudspeakers" class="step" data-x="000" data-y="00" data-z="00" data-prev="#cathederal">
 		<img src="img/people.svg" class="bg">
-		<img src="img/loudspeaker-ring.svg" class="bg">
+		<img src="img/loudspeaker-ring-audio.svg" class="bg">
+	</div>
+
+	<div id="loudspeakers-large-ring" class="step" data-x="000" data-y="00" data-z="1500" data-next="loudspeakrs-angle">
+		<img src="img/people-small.svg" class="">
+		<img src="img/loudspeaker-ring-audio.svg" class="bg">
 	</div>
 
 	<div id="loudspeakers-large" class="step always-visible" data-x="000" data-y="00" data-z="1500">
@@ -51,8 +60,8 @@ http://acoustics.org/pressroom/httpdocs/162nd/boren_1aAA6.html
 		<img src="img/loudspeaker-ring.svg" class="bg">
 	</div>
 
-	<div id="loudspeakers-angle" class="step always-visible" data-x="000" data-y="00" data-z="1600" data-rotate-x="-75">
-
+	<div id="loudspeakers-angle" class="step" data-x="000" data-y="00" data-z="1600" data-rotate-x="-75" z-index:'100'>
+		<canvas id="paperCanvas" width="720" height="520" style="position: relative; top:0px; left:0px; border:0px solid black;" z-index="100"></canvas>
 	</div>
 
 	<div id="juliens" class="step" data-x="3000" data-y="-800" data-z="00">
