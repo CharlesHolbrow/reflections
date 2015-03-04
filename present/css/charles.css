@@ -126,7 +126,8 @@ a:hover {
 /* COMMON STEP STYLES */
 
 .step {
-    width: 780px;
+    position: absolute;
+    width: 720px;
     padding: 40px;
 
     -webkit-box-sizing: border-box;
@@ -151,7 +152,7 @@ a:hover {
 }
 
 .step:not(.active):not(.always-visible) {
-    opacity: 0.1;
+    opacity: 0;
     z-index: -10;
 }
 
