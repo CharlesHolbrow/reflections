@@ -11,13 +11,15 @@
 // segments have .point
 // segments have .point.angle
 //
+window.mirrors = [];
+
 var drawHandle = function(x, y){
   var circle = new Path.Circle([x, y], 6);
   circle.fillColor = 'black';
   return circle;
 };
 
-var createMirror = function(){
+var createMirror = function(x, y){
   var groups = [];
   var segmentCircles = [];
   var outHandleCircles = [];
@@ -61,9 +63,9 @@ var createMirror = function(){
     return circle;
   };
 
-  addSegment(600, 110);
+  addSegment(x, y);
   addOutHandle(15, 50);
-  addSegment(650, 250);
+  addSegment(x + 50, y + 140);
 
   var mirror = new Path([
     [segmentCircles[0].position, null, outHandleCircles[0].position - segmentCircles[0].position],
@@ -80,11 +82,12 @@ var createMirror = function(){
     mirror.segments[0].handleOut = outHandleCircles[0].position - segmentCircles[0].position;
     mirror.segments[1].point = segmentCircles[1].position;
   }
-
+  mirrors.push(mirror);
   return mirror;
 };
 
-var mirror = createMirror();
+var mirror = createMirror(600, 110);
+var mirror = createMirror(500, 210);
 
 var createSoundSource = function(x,y, angle, length){
   var start =  new Point(x, y);
@@ -127,15 +130,31 @@ var createSoundSource = function(x,y, angle, length){
       sound.segments = [sound.firstSegment];
       sound.add(end);
 
-      var intersection = mirror.getIntersections(sound)[0];
-      if (!intersection) return;
+      // if there are no mirrors, we are done
+      if (!mirrors.length) return;
+
+      // find all intersections
+      var intersections = [];
+      for (var i = 0; i < mirrors.length; i++)
+        intersections.push(mirrors[i].getIntersections(sound));
+      intersections = _.flatten(intersections);
+
+      // if we found no intersections, we are done
+      if (!intersections.length) return;
+
+      intersections = _(intersections).sortBy(function(curveLocation){
+        var soundVector = curveLocation.point - sound.firstSegment.point;
+        return soundVector.length;
+      })
+
+      var intersection = intersections[0];
 
       // intersection is a CurveLocation object
       //paperjs.org/reference/curvelocation/
 
       // Paths and Curves have the .getTangentAt function
       // the absolute angle of the mirror where the sound arrives
-      var mirrorTangentPoint = mirror.getTangentAt(intersection.offset);
+      var mirrorTangentPoint = intersection.curve.getTangentAt(intersection.offset);
       var mirrorAngle = mirrorTangentPoint.angle;
 
       // the absolute angle of the sound when it arrives
@@ -145,9 +164,9 @@ var createSoundSource = function(x,y, angle, length){
       var relativeAngle = soundAngle - mirrorAngle;
       sound.segments[1].point = new Point(intersection.point);
 
-      sound1Length = sound.segments[0].point - sound.segments[1].point;
+      var sound1Length = sound.segments[0].point - sound.segments[1].point;
       sound1Length = sound1Length.length;
-      sound2Length = length - sound1Length;
+      var sound2Length = length - sound1Length;
 
       // draw the bounce
       var reflectVector = new Point({length: sound2Length, angle: mirrorAngle - relativeAngle});
