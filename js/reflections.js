@@ -144,48 +144,55 @@ var createSoundSource = function(x,y, angle, length){
         beam.visible = false;
       });
 
+      // keep track of which curvePoints we are bouncing off
+      var reflectionCurveLocations = [];
+
+      // recurse through every reflection in this beam trajectory
       for (var i = 0; i < beamsGroup.children.length; i++) {
         var beam = beamsGroup.children[i];
-        beam.segments = [beamStartPoint, beamEndPoint];
+        beam.visible = true;
+        beam.firstSegment.point = beamStartPoint;
+        beam.lastSegment.point = beamEndPoint;
+
         var intersections = _(mirrors).map(function(mirror){
           return mirror.getIntersections(beam);
         });
         intersections = _(intersections).flatten();
         if (!intersections.length){
-          beam.visible = true;
-          lengthRemaining -= length;
           break;
         }
-
-        console.log(intersections);
-      };
-
-      // if there are no mirrors, we are done
-      // if (!mirrors.length) return;
-
-      for (var k = 0; k < 0; k ++) {
-
-        // Add a point to automatically create a segment
-        sound.add(beamEndPoint);
-
-        // find all intersections after
-        var intersections = [];
-        for (var i = 0; i < mirrors.length; i++)
-          intersections.push(mirrors[i].getIntersections(sound));
-        intersections = _.flatten(intersections);
-
-        // if we found no intersections, we are done
-        if (!intersections.length) return;
-
-        intersections = _(intersections).sortBy(function(curveLocation){
-          var soundVector = curveLocation.point - sound.firstSegment.point;
-          return soundVector.length;
-        })
-
+        // Get the first intersection
+        intersections = _(_(intersections).reject(function(curveLocation){
+          // but reject the start and end locations of the current beam
+          var vector = curveLocation.point - beam.firstSegment.point;
+          var lastCurveLocation = reflectionCurveLocations[reflectionCurveLocations.length -1];
+          lastCurve = (lastCurveLocation) ? lastCurveLocation.curve : undefined;
+          return (
+            curveLocation.point.equals(beamStartPoint) ||
+            curveLocation.point.equals(beamEndPoint) ||
+            // sometimes we get intersections at the very
+            // beginning of a path when that path begins on
+            // another path.
+            // If a path length is less than one pixel, we must
+            // be bouncing off a different mirror
+            (vector.length < 1 && lastCurve === curveLocation.curve)
+          );
+        })).sortBy(function(curveLocation){
+          var vector = curveLocation.point - beam.firstSegment.point;
+          return vector.length;
+        });
         var intersection = intersections[0];
+        if (!intersection) break;
+        reflectionCurveLocations.push(intersection);
 
-        // intersection is a CurveLocation object
-        //paperjs.org/reference/curvelocation/
+        // now we have this beam's intersection with a mirror
+        beamEndPoint = new Point(intersection.point);
+        beam.lastSegment.point = beamEndPoint;
+        beamVector = beamEndPoint - beamStartPoint;
+        lengthRemaining -= beamVector.length;
+
+        // setup for the new loop;
+        beamStartPoint = beamEndPoint;
 
         // Paths and Curves have the .getTangentAt function
         // the absolute angle of the mirror where the sound arrives
@@ -193,25 +200,18 @@ var createSoundSource = function(x,y, angle, length){
         var mirrorAngle = mirrorTangentPoint.angle;
 
         // the absolute angle of the sound when it arrives
-        var soundTangentPoint = sound.getTangentAt(intersection.intersection.offset);
+        var soundTangentPoint = beam.getTangentAt(intersection.intersection.offset);
         var soundAngle = soundTangentPoint.angle;
-
         var relativeAngle = soundAngle - mirrorAngle;
-        sound.segments[1].point = new Point(intersection.point);
 
-        var sound1Length = sound.segments[0].point - sound.segments[1].point;
-        sound1Length = sound1Length.length;
-        var sound2Length = length - sound1Length;
-
-        // draw the bounce
-        var reflectVector = new Point({length: sound2Length, angle: mirrorAngle - relativeAngle});
-        sound.add(new Point(intersection.point + reflectVector));
-      } 
+        var reflectVector = new Point({length: lengthRemaining, angle: mirrorAngle - relativeAngle});
+        beamEndPoint = new Point(intersection.point + reflectVector);
+      }
     }; // drawReflections function
     return beamsGroup;
   }; // createSoundLine function
 
-  for (var i = 0; i < 2; i++){
+  for (var i = 0; i < 7; i++){
     createSoundPath(angle + i * 4, length);
   }
   return soundSource;
