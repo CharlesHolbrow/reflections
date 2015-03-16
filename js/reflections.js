@@ -111,8 +111,8 @@ var createSoundSource = function(x,y, angle, length){
     angleHandle.translate({x:event.delta.x, y:event.delta.y});
   }
 
-  var dispersionAngle = 30;
-  var beamCount = 7;
+  var dispersionAngle = 40;
+  var beamCount = 10;
 
   soundSource = {
     group: group,
@@ -132,48 +132,48 @@ var createSoundSource = function(x,y, angle, length){
     }
   };
 
-  var createSoundPath = function(){
-    var beamsGroup = new Group; // all the segments of one reflection
-    group.addChild(beamsGroup);
+  var createSoundRay = function(){
+    var rayGroup = new Group; // all the segments of one reflection
+    group.addChild(rayGroup);
 
 
-    var beamStartPoint = new Point(circle.position);
-    var beamVector = new Point({angle:0, length:1});
-    var beamEndPoint = beamStartPoint + beamVector; // does order matter?
+    var rayStartPoint = new Point(circle.position);
+    var rayVector = new Point({angle:0, length:1});
+    var rayEndPoint = rayStartPoint + rayVector; // does order matter?
 
     // create 10 hidden beam Path items
     _(_.range(10)).map(function(){
-      var beam = new Path({visible:false, segments:[beamStartPoint, beamEndPoint]});
-      beamsGroup.addChild(beam);
-      return beam;
+      var ray = new Path({visible:false, segments:[rayStartPoint, rayEndPoint]});
+      rayGroup.addChild(ray);
+      return ray;
     });
 
-    beamsGroup.strokeWidth = 1;
-    beamsGroup.strokeColor = 'red';
+    rayGroup.strokeWidth = 1;
+    rayGroup.strokeColor = 'red';
 
-    beamsGroup.drawReflections = function(angle, length){
-      var beamStartPoint = new Point(circle.position);
-      var beamVector = new Point({angle:angle, length:length});
-      var beamEndPoint = beamStartPoint + beamVector; // does order matter?
+    rayGroup.drawReflections = function(angle, length){
+      var rayStartPoint = new Point(circle.position);
+      var rayVector = new Point({angle:angle, length:length});
+      var rayEndPoint = rayStartPoint + rayVector; // does order matter?
       var lengthRemaining = length;
 
       // hide all beams
-      _.each(beamsGroup.children, function(beam){
-        beam.visible = false;
+      _.each(rayGroup.children, function(ray){
+        ray.visible = false;
       });
 
       // keep track of which curvePoints we are bouncing off
       var reflectionCurveLocations = [];
 
-      // recurse through every reflection in this beam trajectory
-      for (var i = 0; i < beamsGroup.children.length; i++) {
-        var beam = beamsGroup.children[i];
-        beam.visible = true;
-        beam.firstSegment.point = beamStartPoint;
-        beam.lastSegment.point = beamEndPoint;
+      // recurse through every reflection in this ray trajectory
+      for (var i = 0; i < rayGroup.children.length; i++) {
+        var ray = rayGroup.children[i];
+        ray.visible = true;
+        ray.firstSegment.point = rayStartPoint;
+        ray.lastSegment.point = rayEndPoint;
 
         var intersections = _(mirrors).map(function(mirror){
-          return mirror.getIntersections(beam);
+          return mirror.getIntersections(ray);
         });
         intersections = _(intersections).flatten();
         if (!intersections.length){
@@ -181,13 +181,13 @@ var createSoundSource = function(x,y, angle, length){
         }
         // Get the first intersection
         intersections = _(_(intersections).reject(function(curveLocation){
-          // but reject the start and end locations of the current beam
-          var vector = curveLocation.point - beam.firstSegment.point;
+          // but reject the start and end locations of the current ray
+          var vector = curveLocation.point - ray.firstSegment.point;
           var lastCurveLocation = reflectionCurveLocations[reflectionCurveLocations.length -1];
           lastCurve = (lastCurveLocation) ? lastCurveLocation.curve : undefined;
           return (
-            curveLocation.point.equals(beamStartPoint) ||
-            curveLocation.point.equals(beamEndPoint) ||
+            curveLocation.point.equals(rayStartPoint) ||
+            curveLocation.point.equals(rayEndPoint) ||
             // sometimes we get intersections at the very
             // beginning of a path when that path begins on
             // another path.
@@ -196,21 +196,21 @@ var createSoundSource = function(x,y, angle, length){
             (vector.length < 1 && lastCurve === curveLocation.curve)
           );
         })).sortBy(function(curveLocation){
-          var vector = curveLocation.point - beam.firstSegment.point;
+          var vector = curveLocation.point - ray.firstSegment.point;
           return vector.length;
         });
         var intersection = intersections[0];
         if (!intersection) break;
         reflectionCurveLocations.push(intersection);
 
-        // now we have this beam's intersection with a mirror
-        beamEndPoint = new Point(intersection.point);
-        beam.lastSegment.point = beamEndPoint;
-        beamVector = beamEndPoint - beamStartPoint;
-        lengthRemaining -= beamVector.length;
+        // now we have this ray's intersection with a mirror
+        rayEndPoint = new Point(intersection.point);
+        ray.lastSegment.point = rayEndPoint;
+        rayVector = rayEndPoint - rayStartPoint;
+        lengthRemaining -= rayVector.length;
 
         // setup for the new loop;
-        beamStartPoint = beamEndPoint;
+        rayStartPoint = rayEndPoint;
 
         // Paths and Curves have the .getTangentAt function
         // the absolute angle of the mirror where the sound arrives
@@ -218,20 +218,18 @@ var createSoundSource = function(x,y, angle, length){
         var mirrorAngle = mirrorTangentPoint.angle;
 
         // the absolute angle of the sound when it arrives
-        var soundTangentPoint = beam.getTangentAt(intersection.intersection.offset);
+        var soundTangentPoint = ray.getTangentAt(intersection.intersection.offset);
         var soundAngle = soundTangentPoint.angle;
         var relativeAngle = soundAngle - mirrorAngle;
 
         var reflectVector = new Point({length: lengthRemaining, angle: mirrorAngle - relativeAngle});
-        beamEndPoint = new Point(intersection.point + reflectVector);
+        rayEndPoint = new Point(intersection.point + reflectVector);
       }
     }; // drawReflections function
-    return beamsGroup;
-  }; // createSoundPath function
+    return rayGroup;
+  }; // createSoundRay function
 
-  for (var i = 0; i < beamCount; i++){
-    createSoundPath();
-  }
+  _.times(beamCount, createSoundRay)
   return soundSource;
 };
 
