@@ -97,30 +97,48 @@ var createSoundSource = function(x,y, angle, length){
   var group = new Group;
   window.soundGroup = group;
 
-  circle = drawHandle(x, y);
+  var circle = drawHandle(x, y);
   group.addChild(circle);
   circle.onMouseDrag = function(event){
     group.translate({x:event.delta.x, y:event.delta.y});
   };
 
+  // Allow user to orient the angle of the beam
+  var angleHandlePosition = new Point({angle: angle + 180, length: 30}) + circle.position;
+  var angleHandle = drawHandle(angleHandlePosition.x, angleHandlePosition.y);
+  group.addChild(angleHandle);
+  angleHandle.onMouseDrag = function(event){
+    angleHandle.translate({x:event.delta.x, y:event.delta.y});
+  }
+
+  var dispersionAngle = 30;
+  var beamCount = 7;
+
   soundSource = {
     group: group,
     update: function(){
+      var beamIndex = 0;
+      var deltaAngle = dispersionAngle / (beamCount-1); // compensate for fencepost error
       for (var i = 0; i < group.children.length; i++){
         var path = group.children[i];
         if (typeof path.drawReflections !== 'function') continue;
-        path.drawReflections();
+        var soundVector = circle.position - angleHandle.position;
+        var angle = soundVector.angle - (dispersionAngle/2) + (beamIndex * deltaAngle);
+        var length = 400;
+        if (soundVector.length > 40) length += Math.pow(soundVector.length - 40, 1.2);
+        path.drawReflections(angle, length);
+        beamIndex++;
       }
     }
   };
 
-  var createSoundPath = function(angle, length){
+  var createSoundPath = function(){
     var beamsGroup = new Group; // all the segments of one reflection
     group.addChild(beamsGroup);
 
 
     var beamStartPoint = new Point(circle.position);
-    var beamVector = new Point({angle:angle, length:length});
+    var beamVector = new Point({angle:0, length:1});
     var beamEndPoint = beamStartPoint + beamVector; // does order matter?
 
     // create 10 hidden beam Path items
@@ -133,7 +151,7 @@ var createSoundSource = function(x,y, angle, length){
     beamsGroup.strokeWidth = 1;
     beamsGroup.strokeColor = 'red';
 
-    beamsGroup.drawReflections = function(){
+    beamsGroup.drawReflections = function(angle, length){
       var beamStartPoint = new Point(circle.position);
       var beamVector = new Point({angle:angle, length:length});
       var beamEndPoint = beamStartPoint + beamVector; // does order matter?
@@ -209,10 +227,10 @@ var createSoundSource = function(x,y, angle, length){
       }
     }; // drawReflections function
     return beamsGroup;
-  }; // createSoundLine function
+  }; // createSoundPath function
 
-  for (var i = 0; i < 7; i++){
-    createSoundPath(angle + i * 4, length);
+  for (var i = 0; i < beamCount; i++){
+    createSoundPath();
   }
   return soundSource;
 };
