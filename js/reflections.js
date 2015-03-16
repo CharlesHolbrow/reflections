@@ -23,6 +23,7 @@ var createMirror = function(x, y){
   var groups = [];
   var segmentCircles = [];
   var outHandleCircles = [];
+  var outHandleTangentLines = [];
 
   var addSegment = function(x, y){
     var circle = drawHandle(x, y);
@@ -48,19 +49,25 @@ var createMirror = function(x, y){
 
   var addOutHandle = function(angle, length){
     var index = outHandleCircles.length;
-    var circle = drawHandle(0, 0);
-    outHandleCircles.push(circle);
+    var tangentHandle = drawHandle(0, 0);
+    outHandleCircles.push(tangentHandle);
 
     var group = groups[index];
-    group.addChild(circle);
+    group.addChild(tangentHandle);
 
-    circle.onMouseDrag = function(event){
-      circle.translate(event.delta);
+    tangentHandle.onMouseDrag = function(event){
+      tangentHandle.translate(event.delta);
       handleMove();
     };
 
-    circle.position = segmentCircles[index].position + new Point({angle:angle, length:length});
-    return circle;
+    tangentHandle.position = segmentCircles[index].position + new Point({angle:angle, length:length});
+
+    var tangentLine = new Path(segmentCircles[index].position, tangentHandle.position)
+    tangentLine.sendToBack();
+    tangentLine.strokeColor = 'blue';
+    tangentLine.strokeWidth = 1;
+    outHandleTangentLines.push(tangentLine);
+    return tangentHandle;
   };
 
   addSegment(x, y);
@@ -72,7 +79,7 @@ var createMirror = function(x, y){
     [segmentCircles[1].position, null, null]
   ]);
 
-  mirror.fullySelected = true;
+  // mirror.fullySelected = true;
   mirror.strokeColor = 'black';
   mirror.strokeWidth = 2;
 
@@ -81,8 +88,12 @@ var createMirror = function(x, y){
     mirror.segments[0].point = segmentCircles[0].position;
     mirror.segments[0].handleOut = outHandleCircles[0].position - segmentCircles[0].position;
     mirror.segments[1].point = segmentCircles[1].position;
+    outHandleTangentLines[0].firstSegment.point = segmentCircles[0].position;
+    outHandleTangentLines[0].lastSegment.point = outHandleCircles[0].position;
+
   }
   mirrors.push(mirror);
+  mirror.sendToBack();
   return mirror;
 };
 
@@ -154,7 +165,7 @@ var createSoundSource = function(x,y, angle, length){
     rayGroup.drawReflections = function(angle, length){
       var rayStartPoint = new Point(circle.position);
       var rayVector = new Point({angle:angle, length:length});
-      var rayEndPoint = rayStartPoint + rayVector; // does order matter?
+      var rayEndPoint = rayStartPoint + rayVector;
       var lengthRemaining = length;
 
       // hide all beams
@@ -165,7 +176,7 @@ var createSoundSource = function(x,y, angle, length){
       // keep track of which curvePoints we are bouncing off
       var reflectionCurveLocations = [];
 
-      // recurse through every reflection in this ray trajectory
+      // recurse through every ray's reflections
       for (var i = 0; i < rayGroup.children.length; i++) {
         var ray = rayGroup.children[i];
         ray.visible = true;
