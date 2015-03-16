@@ -95,7 +95,7 @@ var createSoundSource = function(x,y, angle, length){
   // - circle handle for moving the position
   // - path objects with .drawReflections method
   var group = new Group;
-
+  window.soundGroup = group;
 
   circle = drawHandle(x, y);
   group.addChild(circle);
@@ -115,67 +115,103 @@ var createSoundSource = function(x,y, angle, length){
   };
 
   var createSoundPath = function(angle, length){
-    var vector = new Point({angle:angle, length:length});
-    var end = vector + start;
+    var beamsGroup = new Group; // all the segments of one reflection
+    group.addChild(beamsGroup);
 
-    strokeWidth = 1;
-    var sound = new Path(start, end);
-    group.addChild(sound);
-    sound.strokeColor = 'red';
-    sound.strokeWidth = strokeWidth;
 
-    sound.drawReflections = function(){
-      var start = new Point(circle.position);
-      var end = start + vector;
-      sound.segments = [sound.firstSegment];
-      sound.add(end);
+    var beamStartPoint = new Point(circle.position);
+    var beamVector = new Point({angle:angle, length:length});
+    var beamEndPoint = beamStartPoint + beamVector; // does order matter?
+
+    // create 10 hidden beam Path items
+    _(_.range(10)).map(function(){
+      var beam = new Path({visible:false, segments:[beamStartPoint, beamEndPoint]});
+      beamsGroup.addChild(beam);
+      return beam;
+    });
+
+    beamsGroup.strokeWidth = 1;
+    beamsGroup.strokeColor = 'red';
+
+    beamsGroup.drawReflections = function(){
+      var beamStartPoint = new Point(circle.position);
+      var beamVector = new Point({angle:angle, length:length});
+      var beamEndPoint = beamStartPoint + beamVector; // does order matter?
+      var lengthRemaining = length;
+
+      // hide all beams
+      _.each(beamsGroup.children, function(beam){
+        beam.visible = false;
+      });
+
+      for (var i = 0; i < beamsGroup.children.length; i++) {
+        var beam = beamsGroup.children[i];
+        beam.segments = [beamStartPoint, beamEndPoint];
+        var intersections = _(mirrors).map(function(mirror){
+          return mirror.getIntersections(beam);
+        });
+        intersections = _(intersections).flatten();
+        if (!intersections.length){
+          beam.visible = true;
+          lengthRemaining -= length;
+          break;
+        }
+
+        console.log(intersections);
+      };
 
       // if there are no mirrors, we are done
-      if (!mirrors.length) return;
+      // if (!mirrors.length) return;
 
-      // find all intersections
-      var intersections = [];
-      for (var i = 0; i < mirrors.length; i++)
-        intersections.push(mirrors[i].getIntersections(sound));
-      intersections = _.flatten(intersections);
+      for (var k = 0; k < 0; k ++) {
 
-      // if we found no intersections, we are done
-      if (!intersections.length) return;
+        // Add a point to automatically create a segment
+        sound.add(beamEndPoint);
 
-      intersections = _(intersections).sortBy(function(curveLocation){
-        var soundVector = curveLocation.point - sound.firstSegment.point;
-        return soundVector.length;
-      })
+        // find all intersections after
+        var intersections = [];
+        for (var i = 0; i < mirrors.length; i++)
+          intersections.push(mirrors[i].getIntersections(sound));
+        intersections = _.flatten(intersections);
 
-      var intersection = intersections[0];
+        // if we found no intersections, we are done
+        if (!intersections.length) return;
 
-      // intersection is a CurveLocation object
-      //paperjs.org/reference/curvelocation/
+        intersections = _(intersections).sortBy(function(curveLocation){
+          var soundVector = curveLocation.point - sound.firstSegment.point;
+          return soundVector.length;
+        })
 
-      // Paths and Curves have the .getTangentAt function
-      // the absolute angle of the mirror where the sound arrives
-      var mirrorTangentPoint = intersection.curve.getTangentAt(intersection.offset);
-      var mirrorAngle = mirrorTangentPoint.angle;
+        var intersection = intersections[0];
 
-      // the absolute angle of the sound when it arrives
-      var soundTangentPoint = sound.getTangentAt(intersection.intersection.offset);
-      var soundAngle = soundTangentPoint.angle;
+        // intersection is a CurveLocation object
+        //paperjs.org/reference/curvelocation/
 
-      var relativeAngle = soundAngle - mirrorAngle;
-      sound.segments[1].point = new Point(intersection.point);
+        // Paths and Curves have the .getTangentAt function
+        // the absolute angle of the mirror where the sound arrives
+        var mirrorTangentPoint = intersection.curve.getTangentAt(intersection.offset);
+        var mirrorAngle = mirrorTangentPoint.angle;
 
-      var sound1Length = sound.segments[0].point - sound.segments[1].point;
-      sound1Length = sound1Length.length;
-      var sound2Length = length - sound1Length;
+        // the absolute angle of the sound when it arrives
+        var soundTangentPoint = sound.getTangentAt(intersection.intersection.offset);
+        var soundAngle = soundTangentPoint.angle;
 
-      // draw the bounce
-      var reflectVector = new Point({length: sound2Length, angle: mirrorAngle - relativeAngle});
-      sound.add(new Point(intersection.point + reflectVector));
+        var relativeAngle = soundAngle - mirrorAngle;
+        sound.segments[1].point = new Point(intersection.point);
+
+        var sound1Length = sound.segments[0].point - sound.segments[1].point;
+        sound1Length = sound1Length.length;
+        var sound2Length = length - sound1Length;
+
+        // draw the bounce
+        var reflectVector = new Point({length: sound2Length, angle: mirrorAngle - relativeAngle});
+        sound.add(new Point(intersection.point + reflectVector));
+      } 
     }; // drawReflections function
-    return sound;
+    return beamsGroup;
   }; // createSoundLine function
 
-  for (var i = 0; i < 7; i++){
+  for (var i = 0; i < 2; i++){
     createSoundPath(angle + i * 4, length);
   }
   return soundSource;
