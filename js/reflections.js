@@ -45,7 +45,7 @@ var createMirror = function(x, y){
       handleMove()
     };
     return circle;
-  };
+  }; // addSegment
 
   var addOutHandle = function(angle, length){
     var index = outHandleCircles.length;
@@ -68,7 +68,7 @@ var createMirror = function(x, y){
     tangentLine.strokeWidth = 1;
     outHandleTangentLines.push(tangentLine);
     return tangentHandle;
-  };
+  }; // addOutHandle
 
   addSegment(x, y);
   addOutHandle(15, 50);
@@ -90,13 +90,31 @@ var createMirror = function(x, y){
     mirror.segments[1].point = segmentCircles[1].position;
     outHandleTangentLines[0].firstSegment.point = segmentCircles[0].position;
     outHandleTangentLines[0].lastSegment.point = outHandleCircles[0].position;
-
   }
+
   mirrors.push(mirror);
   mirror.sendToBack();
 
-  mirror.toJSON = function(){
+  // Serialize this mirror. When we reconstruct from the
+  // serialized mirror, we will have to re-create all three
+  // handles from the points using the segment and out handle
+  // positions. The addOutHandle and addSegment functions have 
+  // two purposes:
+  // 1. Create the circles that we onMouseDrag to move paths
+  // 2. Add the circles to their arrays (ex. outHandleCircles)
+  mirror.objectify = function(){
     var obj = mirror.exportJSON({asString:false});
+    // obj will look something like this:
+    // (Not all properties of the object are included)
+    // [
+    //   "Path",
+    //   {
+    //     segments: [
+    //        [[600, 110], [0, 0], [48.29629, 12.94095]], // a segment with an no in handle and an out handle
+    //        [650, 250],                                 // a straight segment
+    //     ],
+    //   }
+    // ]
     return obj;
   }
 
@@ -104,7 +122,7 @@ var createMirror = function(x, y){
 };
 
 var mirror = createMirror(600, 110);
-var mirror = createMirror(500, 210);
+// var mirror = createMirror(500, 210);
 
 var createSoundSource = function(x,y, angle, length){
   var start =  new Point(x, y);
