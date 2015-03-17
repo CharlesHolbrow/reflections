@@ -19,7 +19,9 @@ var drawHandle = function(x, y){
   return circle;
 };
 
-var createMirror = function(x, y){
+// The first argument can be a path object OR an
+// array or string exported via mirror.exportJSON
+window.createMirror = function(x, y){
   var groups = [];
   var segmentCircles = [];
   var outHandleCircles = [];
@@ -70,18 +72,38 @@ var createMirror = function(x, y){
     return tangentHandle;
   }; // addOutHandle
 
-  addSegment(x, y);
-  addOutHandle(15, 50);
-  addSegment(x + 50, y + 140);
+  // Allow us to create a mirror by
+  // - passing in a path object
+  // - passing in an x, y coordinates
+  if (typeof x === 'string')
+    x = JSON.parse(x);
+  if (_.isArray(x)) // Paper.Path.exportJSON() exports an array
+    x = new Path().importJSON(x);
+  if (typeof x === 'object' && x.className === 'Path'){
+    var mirror = x;
+    _.each(mirror.segments, function(segment, i){
+      addSegment(segment.point.x, segment.point.y);
+      if (segment.handleOut.length){
 
-  var mirror = new Path([
-    [segmentCircles[0].position, null, outHandleCircles[0].position - segmentCircles[0].position],
-    [segmentCircles[1].position, null, null]
-  ]);
+        addOutHandle(segment.handleOut.angle, segment.handleOut.length);
+      } else {
+        outHandleCircles.push(null);
+      }
+    });
+  } else if (typeof x === 'number') {
+    addSegment(x, y);
+    addOutHandle(15, 50);
+    addSegment(x + 50, y + 140);
 
-  // mirror.fullySelected = true;
-  mirror.strokeColor = 'black';
-  mirror.strokeWidth = 2;
+    var mirror = new Path([
+      [segmentCircles[0].position, null, outHandleCircles[0].position - segmentCircles[0].position],
+      [segmentCircles[1].position, null, null]
+    ]);
+    mirror.strokeColor = 'black';
+    mirror.strokeWidth = 2;
+  } else { 
+    throw new Error('');
+  }
 
   // move the mirror to match the position of the segmentCircles
   var handleMove = function(){
@@ -94,29 +116,6 @@ var createMirror = function(x, y){
 
   mirrors.push(mirror);
   mirror.sendToBack();
-
-  // Serialize this mirror. When we reconstruct from the
-  // serialized mirror, we will have to re-create all three
-  // handles from the points using the segment and out handle
-  // positions. The addOutHandle and addSegment functions have 
-  // two purposes:
-  // 1. Create the circles that we onMouseDrag to move paths
-  // 2. Add the circles to their arrays (ex. outHandleCircles)
-  mirror.objectify = function(){
-    var obj = mirror.exportJSON({asString:false});
-    // obj will look something like this:
-    // (Not all properties of the object are included)
-    // [
-    //   "Path",
-    //   {
-    //     segments: [
-    //        [[600, 110], [0, 0], [48.29629, 12.94095]], // a segment with an no in handle and an out handle
-    //        [650, 250],                                 // a straight segment
-    //     ],
-    //   }
-    // ]
-    return obj;
-  }
 
   return mirror;
 };
@@ -136,6 +135,7 @@ var createSoundSource = function(x,y, angle, length){
   group.addChild(circle);
   circle.onMouseDrag = function(event){
     group.translate({x:event.delta.x, y:event.delta.y});
+    //  we don't need handleMove(), because line is child of group
   };
 
   // Allow user to orient the angle of the beam
@@ -144,7 +144,14 @@ var createSoundSource = function(x,y, angle, length){
   group.addChild(angleHandle);
   angleHandle.onMouseDrag = function(event){
     angleHandle.translate({x:event.delta.x, y:event.delta.y});
-  }
+    line.lastSegment.point = angleHandle.position;
+  };
+
+  var line = new Path(circle.position, angleHandle.position);
+  group.addChild(line);
+  line.sendToBack();
+  line.strokeWidth = 1;
+  line.strokeColor = 'blue';
 
   var dispersionAngle = 40;
   var beamCount = 10;
@@ -170,7 +177,7 @@ var createSoundSource = function(x,y, angle, length){
   var createSoundRay = function(){
     var rayGroup = new Group; // all the segments of one reflection
     group.addChild(rayGroup);
-
+    rayGroup.sendToBack();
 
     var rayStartPoint = new Point(circle.position);
     var rayVector = new Point({angle:0, length:1});
@@ -180,6 +187,7 @@ var createSoundSource = function(x,y, angle, length){
     _(_.range(10)).map(function(){
       var ray = new Path({visible:false, segments:[rayStartPoint, rayEndPoint]});
       rayGroup.addChild(ray);
+      ray.sendToBack();
       return ray;
     });
 
