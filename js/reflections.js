@@ -94,6 +94,12 @@ var createMirror = function(x, y){
   }
   mirrors.push(mirror);
   mirror.sendToBack();
+
+  mirror.toJSON = function(){
+    var obj = mirror.exportJSON({asString:false});
+    return obj;
+  }
+
   return mirror;
 };
 
