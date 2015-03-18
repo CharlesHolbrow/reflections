@@ -14,7 +14,7 @@
 window.mirrors = [];
 window.sounds = [];
 
-var blue = '#8888ff';
+var handleLineColor = '#9999b0';
 
 var drawHandle = function(x, y){
   var circle = new Path.Circle([x, y], 6);
@@ -69,7 +69,7 @@ window.createMirror = function(x, y){
 
     var tangentLine = new Path(segmentCircles[index].position, tangentHandle.position)
     tangentLine.sendToBack();
-    tangentLine.strokeColor = blue;
+    tangentLine.strokeColor = handleLineColor;
     tangentLine.strokeWidth = 1;
     outHandleTangentLines.push(tangentLine);
     return tangentHandle;
@@ -139,7 +139,7 @@ window.createSound = function(x,y, angle, length){
     var handlePoint = soundPoint + new Point({angle: angle + 180, length:length});
     var line = new Path(soundPoint, handlePoint);
     line.strokeWidth = 1;
-    line.strokeColor = blue;
+    line.strokeColor = handleLineColor;
   }
   group.addChild(line);
   line.sendToBack();
@@ -347,7 +347,7 @@ window.launch = function(){
       new Path([[290, 170], [180, 132]])
     ];
     _(sources).each(function(source){
-      source.strokeColor = blue;
+      source.strokeColor = handleLineColor;
       source.strokeWidth = 1;
       createSound(source);
     });
