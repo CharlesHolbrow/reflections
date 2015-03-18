@@ -12,6 +12,7 @@
 // segments have .point.angle
 //
 window.mirrors = [];
+window.sounds = [];
 
 var drawHandle = function(x, y){
   var circle = new Path.Circle([x, y], 6);
@@ -120,41 +121,43 @@ window.createMirror = function(x, y){
   return mirror;
 };
 
-var mirror = createMirror(600, 110);
-// var mirror = createMirror(500, 210);
-
-var createSoundSource = function(x,y, angle, length){
-  var start =  new Point(x, y);
+window.createSoundSource = function(x,y, angle, length){
   // Group contains
   // - circle handle for moving the position
   // - path objects with .drawReflections method
+  // - line from emitter to handle
   var group = new Group;
-  window.soundGroup = group;
 
-  var circle = drawHandle(x, y);
+  if (typeof x === 'string'){
+    var line = new Path().importJSON(x);
+  } else {
+    var soundPoint = new Point(x, y);
+    var handlePoint = soundPoint + new Point({angle: angle + 180, length:length});
+    var line = new Path(soundPoint, handlePoint);
+    line.strokeWidth = 1;
+    line.strokeColor = 'blue';
+  }
+  group.addChild(line);
+  line.sendToBack();
+
+  // Create a handle that moved the entire object
+  var circle = drawHandle(line.firstSegment.point.x, line.firstSegment.point.y);
   group.addChild(circle);
   circle.onMouseDrag = function(event){
     group.translate({x:event.delta.x, y:event.delta.y});
     //  we don't need handleMove(), because line is child of group
   };
 
-  // Allow user to orient the angle of the beam
-  var angleHandlePosition = new Point({angle: angle + 180, length: 30}) + circle.position;
-  var angleHandle = drawHandle(angleHandlePosition.x, angleHandlePosition.y);
+  // create a handle for controlling the angle and length
+  var angleHandle = drawHandle(line.lastSegment.point.x, line.lastSegment.point.y)
   group.addChild(angleHandle);
   angleHandle.onMouseDrag = function(event){
     angleHandle.translate({x:event.delta.x, y:event.delta.y});
     line.lastSegment.point = angleHandle.position;
   };
 
-  var line = new Path(circle.position, angleHandle.position);
-  group.addChild(line);
-  line.sendToBack();
-  line.strokeWidth = 1;
-  line.strokeColor = 'blue';
-
-  var dispersionAngle = 40;
-  var beamCount = 10;
+  var dispersionAngle = 30;
+  var beamCount = 8;
 
   soundSource = {
     group: group,
@@ -167,10 +170,13 @@ var createSoundSource = function(x,y, angle, length){
         var soundVector = circle.position - angleHandle.position;
         var angle = soundVector.angle - (dispersionAngle/2) + (beamIndex * deltaAngle);
         var length = 400;
-        if (soundVector.length > 40) length += Math.pow(soundVector.length - 40, 1.2);
+        if (soundVector.length > 32) length += Math.pow(soundVector.length - 32, 1.25);
         path.drawReflections(angle, length);
         beamIndex++;
       }
+    },
+    exportJSON: function(options){
+      return line.exportJSON(options);
     }
   };
 
@@ -273,13 +279,14 @@ var createSoundSource = function(x,y, angle, length){
   }; // createSoundRay function
 
   _.times(beamCount, createSoundRay)
+  soundSource.update();
+  sounds.push(soundSource);
   return soundSource;
 };
 
-
-window.soundSource = createSoundSource(570, 170, 0, 600);
-soundSource.update();
+createMirror(600, 110);
+createSoundSource(570, 170, 0, 30);
 
 function onMouseDrag(event) {
-  soundSource.update();
+  _(sounds).each(function(sound){sound.update();});
 }
