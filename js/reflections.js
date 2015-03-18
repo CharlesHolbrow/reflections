@@ -14,6 +14,8 @@
 window.mirrors = [];
 window.sounds = [];
 
+var blue = '#8888ff';
+
 var drawHandle = function(x, y){
   var circle = new Path.Circle([x, y], 6);
   circle.fillColor = 'black';
@@ -67,7 +69,7 @@ window.createMirror = function(x, y){
 
     var tangentLine = new Path(segmentCircles[index].position, tangentHandle.position)
     tangentLine.sendToBack();
-    tangentLine.strokeColor = 'blue';
+    tangentLine.strokeColor = blue;
     tangentLine.strokeWidth = 1;
     outHandleTangentLines.push(tangentLine);
     return tangentHandle;
@@ -130,12 +132,14 @@ window.createSound = function(x,y, angle, length){
 
   if (typeof x === 'string' || _.isArray(x)){
     var line = new Path().importJSON(x);
+  } else if (x.className === 'Path'){
+    line = x;
   } else {
     var soundPoint = new Point(x, y);
     var handlePoint = soundPoint + new Point({angle: angle + 180, length:length});
     var line = new Path(soundPoint, handlePoint);
     line.strokeWidth = 1;
-    line.strokeColor = 'blue';
+    line.strokeColor = blue;
   }
   group.addChild(line);
   line.sendToBack();
@@ -169,8 +173,8 @@ window.createSound = function(x,y, angle, length){
         if (typeof path.drawReflections !== 'function') continue;
         var soundVector = circle.position - angleHandle.position;
         var angle = soundVector.angle - (dispersionAngle/2) + (beamIndex * deltaAngle);
-        var length = 400;
-        if (soundVector.length > 32) length += Math.pow(soundVector.length - 32, 1.25);
+        var length = 0;
+        if (soundVector.length > 5) length += Math.pow(soundVector.length - 5, 1.5);
         path.drawReflections(angle, length);
         beamIndex++;
       }
@@ -284,9 +288,9 @@ window.createSound = function(x,y, angle, length){
   return soundSource;
 };
 
-createMirror(600, 110);
-createSound(570, 170, 0, 30);
 
+// Take the entire state of the document, and encode it as a
+// string that can be used as a query parameter.
 window.serializeContent = function(){
   var data = {
     mirrors: [],
@@ -298,13 +302,11 @@ window.serializeContent = function(){
   _(sounds).each(function(sound){
     data.sounds.push(sound.exportJSON({asString:false}));
   });
-  return JSON.stringify(data);
+  return encodeURIComponent(JSON.stringify(data));
 };
 
-window.parseCountent = function(obj){
-  if (typeof obj === 'string')
-    obj = JSON.parse(obj);
-
+window.parseContent = function(encodedURIComponent){
+  obj = JSON.parse(decodeURIComponent(encodedURIComponent));
   _(obj.mirrors).each(function(mirror){
     createMirror(mirror);
   });
@@ -314,6 +316,53 @@ window.parseCountent = function(obj){
 };
 
 
+function onMouseUp(event){
+  var c = serializeContent();
+  window.history.replaceState(null, null, '?q=' + c);
+}
+
 function onMouseDrag(event) {
   _(sounds).each(function(sound){sound.update();});
 }
+
+window.launch = function(){
+  var useDefault = function(){
+    var walls = [
+      new Path([
+        [[330, 60], null, [-310, 138]],
+        [[116, 480], null, null]
+      ]),
+      new Path([
+        [[530, 60], null, [310, 138]],
+        [[744, 480], null, null]
+      ])
+    ]
+    _(walls).each(function(path){
+      path.strokeWidth = 2;
+      path.strokeColor = 'black';
+      createMirror(path);      
+    });
+    var sources = [
+      new Path([[570, 170], [680, 132]]),
+      new Path([[290, 170], [180, 132]])
+    ];
+    _(sources).each(function(source){
+      source.strokeColor = blue;
+      source.strokeWidth = 1;
+      createSound(source);
+    });
+  };
+
+  try {
+    info = window.location.search.slice(3);
+    if (!info)
+      throw new Error('use defaults');
+    if (info[info.length-1] === '/')
+      info = info.slice(0, -1);
+    parseContent(info);
+  } catch(error) {
+    console.warn("Could not parse fragment. Using defaults");
+    useDefault();
+  }
+};
+window.launch();
