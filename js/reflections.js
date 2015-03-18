@@ -121,14 +121,14 @@ window.createMirror = function(x, y){
   return mirror;
 };
 
-window.createSoundSource = function(x,y, angle, length){
+window.createSound = function(x,y, angle, length){
   // Group contains
   // - circle handle for moving the position
   // - path objects with .drawReflections method
   // - line from emitter to handle
   var group = new Group;
 
-  if (typeof x === 'string'){
+  if (typeof x === 'string' || _.isArray(x)){
     var line = new Path().importJSON(x);
   } else {
     var soundPoint = new Point(x, y);
@@ -285,7 +285,34 @@ window.createSoundSource = function(x,y, angle, length){
 };
 
 createMirror(600, 110);
-createSoundSource(570, 170, 0, 30);
+createSound(570, 170, 0, 30);
+
+window.serializeContent = function(){
+  var data = {
+    mirrors: [],
+    sounds: []
+  };
+  _(mirrors).each(function(mirror){
+    data.mirrors.push(mirror.exportJSON({asString:false}));
+  });
+  _(sounds).each(function(sound){
+    data.sounds.push(sound.exportJSON({asString:false}));
+  });
+  return JSON.stringify(data);
+};
+
+window.parseCountent = function(obj){
+  if (typeof obj === 'string')
+    obj = JSON.parse(obj);
+
+  _(obj.mirrors).each(function(mirror){
+    createMirror(mirror);
+  });
+  _(obj.sounds).each(function(sound){
+    createSound(sound);
+  });
+};
+
 
 function onMouseDrag(event) {
   _(sounds).each(function(sound){sound.update();});
