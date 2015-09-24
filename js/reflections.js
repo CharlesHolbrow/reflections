@@ -11,13 +11,14 @@
 // segments have .point
 // segments have .point.angle
 //
+
 window.mirrors = [];
 window.sounds = [];
 
 var handleLineColor = '#9999b0';
 
 var drawHandle = function(x, y){
-  var circle = new Path.Circle([x, y], 6);
+  var circle = new paper.Path.Circle([x, y], 6);
   circle.fillColor = 'black';
   return circle;
 };
@@ -34,10 +35,10 @@ window.createMirror = function(x, y){
     var circle = drawHandle(x, y);
     segmentCircles.push(circle);
 
-    var group = new Group;
+    var group = new paper.Group;
     groups.push(group);
     group.addChild(circle);
-    group.position = new Point(x, y);
+    group.position = new paper.Point(x, y);
     group.fillColor = 'black';
 
     // first segment moves entire path
@@ -65,9 +66,9 @@ window.createMirror = function(x, y){
       handleMove();
     };
 
-    tangentHandle.position = segmentCircles[index].position + new Point({angle:angle, length:length});
+    tangentHandle.position = segmentCircles[index].position.add(new paper.Point({angle:angle, length:length}));
 
-    var tangentLine = new Path(segmentCircles[index].position, tangentHandle.position)
+    var tangentLine = new paper.Path(segmentCircles[index].position, tangentHandle.position)
     tangentLine.sendToBack();
     tangentLine.strokeColor = handleLineColor;
     tangentLine.strokeWidth = 1;
@@ -81,7 +82,7 @@ window.createMirror = function(x, y){
   if (typeof x === 'string')
     x = JSON.parse(x);
   if (_.isArray(x)) // Paper.Path.exportJSON() exports an array
-    x = new Path().importJSON(x);
+    x = new paper.Path().importJSON(x);
   if (typeof x === 'object' && x.className === 'Path'){
     var mirror = x;
     _.each(mirror.segments, function(segment, i){
@@ -98,7 +99,7 @@ window.createMirror = function(x, y){
     addOutHandle(15, 50);
     addSegment(x + 50, y + 140);
 
-    var mirror = new Path([
+    var mirror = new paper.Path([
       [segmentCircles[0].position, null, outHandleCircles[0].position - segmentCircles[0].position],
       [segmentCircles[1].position, null, null]
     ]);
@@ -128,16 +129,16 @@ window.createSound = function(x,y, angle, length){
   // - circle handle for moving the position
   // - path objects with .drawReflections method
   // - line from emitter to handle
-  var group = new Group;
+  var group = new paper.Group;
 
   if (typeof x === 'string' || _.isArray(x)){
-    var line = new Path().importJSON(x);
+    var line = new paper.Path().importJSON(x);
   } else if (x.className === 'Path'){
     line = x;
   } else {
-    var soundPoint = new Point(x, y);
-    var handlePoint = soundPoint + new Point({angle: angle + 180, length:length});
-    var line = new Path(soundPoint, handlePoint);
+    var soundPoint = new paper.Point(x, y);
+    var handlePoint = soundPoint.add(new paper.Point({angle: angle + 180, length:length}));
+    var line = new paper.Path(soundPoint, handlePoint);
     line.strokeWidth = 1;
     line.strokeColor = handleLineColor;
   }
@@ -171,7 +172,7 @@ window.createSound = function(x,y, angle, length){
       for (var i = 0; i < group.children.length; i++){
         var path = group.children[i];
         if (typeof path.drawReflections !== 'function') continue;
-        var soundVector = circle.position - angleHandle.position;
+        var soundVector = circle.position.subtract(angleHandle.position);
         var angle = soundVector.angle - (dispersionAngle/2) + (beamIndex * deltaAngle);
         var length = 0;
         if (soundVector.length > 5) length += Math.pow(soundVector.length - 5, 1.5);
@@ -185,17 +186,17 @@ window.createSound = function(x,y, angle, length){
   };
 
   var createSoundRay = function(){
-    var rayGroup = new Group; // all the segments of one reflection
+    var rayGroup = new paper.Group; // all the segments of one reflection
     group.addChild(rayGroup);
     rayGroup.sendToBack();
 
-    var rayStartPoint = new Point(circle.position);
-    var rayVector = new Point({angle:0, length:1});
-    var rayEndPoint = rayStartPoint + rayVector; // does order matter?
+    var rayStartPoint = new paper.Point(circle.position);
+    var rayVector = new paper.Point({angle:0, length:1});
+    var rayEndPoint = rayStartPoint.add(rayVector); // does order matter?
 
     // create 10 hidden beam Path items
     _(_.range(10)).map(function(){
-      var ray = new Path({visible:false, segments:[rayStartPoint, rayEndPoint]});
+      var ray = new paper.Path({visible:false, segments:[rayStartPoint, rayEndPoint]});
       rayGroup.addChild(ray);
       ray.sendToBack();
       return ray;
@@ -205,9 +206,9 @@ window.createSound = function(x,y, angle, length){
     rayGroup.strokeColor = 'red';
 
     rayGroup.drawReflections = function(angle, length){
-      var rayStartPoint = new Point(circle.position);
-      var rayVector = new Point({angle:angle, length:length});
-      var rayEndPoint = rayStartPoint + rayVector;
+      var rayStartPoint = new paper.Point(circle.position);
+      var rayVector = new paper.Point({angle:angle, length:length});
+      var rayEndPoint = rayStartPoint.add(rayVector);
       var lengthRemaining = length;
 
       // hide all beams
@@ -235,7 +236,7 @@ window.createSound = function(x,y, angle, length){
         // Get the first intersection
         intersections = _(_(intersections).reject(function(curveLocation){
           // but reject the start and end locations of the current ray
-          var vector = curveLocation.point - ray.firstSegment.point;
+          var vector = curveLocation.point.subtract(ray.firstSegment.point);
           var lastCurveLocation = reflectionCurveLocations[reflectionCurveLocations.length -1];
           lastCurve = (lastCurveLocation) ? lastCurveLocation.curve : undefined;
           return (
@@ -249,7 +250,7 @@ window.createSound = function(x,y, angle, length){
             (vector.length < 1 && lastCurve === curveLocation.curve)
           );
         })).sortBy(function(curveLocation){
-          var vector = curveLocation.point - ray.firstSegment.point;
+          var vector = curveLocation.point.subtract(ray.firstSegment.point);
           return vector.length;
         });
         var intersection = intersections[0];
@@ -257,9 +258,9 @@ window.createSound = function(x,y, angle, length){
         reflectionCurveLocations.push(intersection);
 
         // now we have this ray's intersection with a mirror
-        rayEndPoint = new Point(intersection.point);
+        rayEndPoint = new paper.Point(intersection.point);
         ray.lastSegment.point = rayEndPoint;
-        rayVector = rayEndPoint - rayStartPoint;
+        rayVector = rayEndPoint.subtract(rayStartPoint);
         lengthRemaining -= rayVector.length;
 
         // setup for the new loop;
@@ -275,8 +276,8 @@ window.createSound = function(x,y, angle, length){
         var soundAngle = soundTangentPoint.angle;
         var relativeAngle = soundAngle - mirrorAngle;
 
-        var reflectVector = new Point({length: lengthRemaining, angle: mirrorAngle - relativeAngle});
-        rayEndPoint = new Point(intersection.point + reflectVector);
+        var reflectVector = new paper.Point({length: lengthRemaining, angle: mirrorAngle - relativeAngle});
+        rayEndPoint = new paper.Point(intersection.point.add(reflectVector));
       }
     }; // drawReflections function
     return rayGroup;
@@ -316,23 +317,28 @@ window.parseContent = function(encodedURIComponent){
 };
 
 
-function onMouseUp(event){
-  var c = serializeContent();
-  window.history.replaceState(null, null, '?q=' + c);
-}
 
-function onMouseDrag(event) {
-  _(sounds).each(function(sound){sound.update();});
-}
+window.onload = function(){
+  var canvas = document.getElementById('paperCanvas');
+  paper.setup(canvas);
+  var tool = new paper.Tool;
 
-window.launch = function(){
+  tool.onMouseUp = function(event){
+    var c = serializeContent();
+    window.history.replaceState(null, null, '?q=' + c);
+  }
+
+  tool.onMouseDrag = function(event) {
+    _(sounds).each(function(sound){sound.update();});
+  }
+
   var useDefault = function(){
     var walls = [
-      new Path([
+      new paper.Path([
         [[330, 60], null, [-310, 138]],
         [[116, 480], null, null]
       ]),
-      new Path([
+      new paper.Path([
         [[530, 60], null, [310, 138]],
         [[744, 480], null, null]
       ])
@@ -343,8 +349,8 @@ window.launch = function(){
       createMirror(path);      
     });
     var sources = [
-      new Path([[570, 170], [680, 132]]),
-      new Path([[290, 170], [180, 132]])
+      new paper.Path([[570, 170], [680, 132]]),
+      new paper.Path([[290, 170], [180, 132]])
     ];
     _(sources).each(function(source){
       source.strokeColor = handleLineColor;
@@ -365,4 +371,3 @@ window.launch = function(){
     useDefault();
   }
 };
-window.launch();
